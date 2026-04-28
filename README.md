@@ -7,6 +7,7 @@
 **Date:** 1st May 2026  
 **Venue:** INOX, The University of Sheffield  
 **Address:** Level 5, Students' Union Building, Durham Road, Sheffield, S10 2TG  
+**Workshop webpage:** https://ccp-nth.github.io/chapsim2-training-workshop/
 
 ---
 
