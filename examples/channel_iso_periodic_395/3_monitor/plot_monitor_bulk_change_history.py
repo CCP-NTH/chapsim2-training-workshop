@@ -32,6 +32,7 @@ Comment lines starting with ``#`` are ignored automatically.
 Examples:
     python3 plot_monitor_bulk_change_history.py
     python3 plot_monitor_bulk_change_history.py --stride 20 --output my_plot.png
+    python3 plot_monitor_bulk_change_history.py --xmin 50
 
 Author: W Wang (STFC)
 """
@@ -106,6 +107,14 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_OUTPUT_FILE,
         help=f"Output figure name (default: {DEFAULT_OUTPUT_FILE}).",
     )
+    parser.add_argument(
+        "--xmin",
+        "--x-min",
+        dest="x_min",
+        type=float,
+        default=None,
+        help="Only plot samples with time >= this value (default: plot all).",
+    )
     return parser.parse_args()
 
 
@@ -152,13 +161,30 @@ def decimate(data: np.ndarray, stride: int) -> np.ndarray:
     return data[::stride]
 
 
+def filter_by_time(data: np.ndarray, time_col: int, x_min: float | None) -> np.ndarray:
+    if x_min is None:
+        return data
+    return data[data[:, time_col] >= x_min]
+
+
 def plot_monitor_history(
-    metrics_data: np.ndarray, change_data: np.ndarray, stride: int, output: str
+    metrics_data: np.ndarray,
+    change_data: np.ndarray,
+    stride: int,
+    output: str,
+    x_min: float | None = None,
 ) -> Path:
+    metrics_data = filter_by_time(metrics_data, IDX_TIME, x_min)
+    change_data = filter_by_time(change_data, IDX_CHANGE_TIME, x_min)
+    if metrics_data.size == 0:
+        raise ValueError(f"No metrics-history data found for time >= {x_min}.")
+    if change_data.size == 0:
+        raise ValueError(f"No change-history data found for time >= {x_min}.")
+
     metrics = decimate(metrics_data, stride)
     changes = decimate(change_data, stride)
 
-    fig, axes = plt.subplots(3, 2, figsize=(14, 11), sharex=False)
+    fig, axes = plt.subplots(4, 2, figsize=(14, 14), sharex=False)
     axes = axes.ravel()
 
     axes[0].plot(
@@ -175,95 +201,97 @@ def plot_monitor_history(
         metrics[:, IDX_QX],
         color="tab:red",
         linewidth=1.4,
-        label="qx",
     )
-    axes[1].plot(
+    axes[1].set_xlabel("Time")
+    axes[1].set_ylabel("Bulk velocity qx")
+
+    axes[2].plot(
         metrics[:, IDX_TIME],
         metrics[:, IDX_QY],
         color="tab:green",
-        linewidth=1.2,
-        label="qy",
+        linewidth=1.4,
     )
-    axes[1].plot(
+    axes[2].set_xlabel("Time")
+    axes[2].set_ylabel("Bulk velocity qy")
+
+    axes[3].plot(
         metrics[:, IDX_TIME],
         metrics[:, IDX_QZ],
         color="tab:orange",
-        linewidth=1.2,
-        label="qz",
+        linewidth=1.4,
     )
-    axes[1].set_xlabel("Time")
-    axes[1].set_ylabel("Bulk velocity")
-    axes[1].legend()
+    axes[3].set_xlabel("Time")
+    axes[3].set_ylabel("Bulk velocity qz")
 
-    axes[2].plot(
+    axes[4].plot(
         changes[:, IDX_CHANGE_TIME],
         changes[:, IDX_CHANGE_MASS_INTERIOR],
         color="tab:blue",
         linewidth=1.2,
         label="interior",
     )
-    axes[2].plot(
+    axes[4].plot(
         changes[:, IDX_CHANGE_TIME],
         changes[:, IDX_CHANGE_MASS_INLET],
         color="tab:red",
         linewidth=1.2,
         label="inlet",
     )
-    axes[2].plot(
+    axes[4].plot(
         changes[:, IDX_CHANGE_TIME],
         changes[:, IDX_CHANGE_MASS_OUTLET],
         color="tab:green",
         linewidth=1.2,
         label="outlet",
     )
-    axes[2].set_xlabel("Time")
-    axes[2].set_ylabel("Max mass conservation")
-    axes[2].legend()
+    axes[4].set_xlabel("Time")
+    axes[4].set_ylabel("Max mass conservation")
+    axes[4].legend()
 
-    axes[3].plot(
+    axes[5].plot(
         metrics[:, IDX_TIME],
         metrics[:, IDX_GLOBAL_MASS_BALANCE],
         color="tab:purple",
         linewidth=1.4,
         label="global mass balance",
     )
-    axes[3].plot(
+    axes[5].plot(
         changes[:, IDX_CHANGE_TIME],
         changes[:, IDX_CHANGE_DMDT],
         color="tab:brown",
         linewidth=1.2,
         label="dM/dt",
     )
-    axes[3].set_xlabel("Time")
-    axes[3].set_ylabel("Mass balance / change")
-    axes[3].legend()
+    axes[5].set_xlabel("Time")
+    axes[5].set_ylabel("Mass balance / change")
+    axes[5].legend()
 
-    axes[4].plot(
+    axes[6].plot(
         changes[:, IDX_CHANGE_TIME],
         changes[:, IDX_CHANGE_DKEDT],
         color="tab:orange",
         linewidth=1.4,
     )
-    axes[4].set_xlabel("Time")
-    axes[4].set_ylabel("d(KE)/dt")
+    axes[6].set_xlabel("Time")
+    axes[6].set_ylabel("d(KE)/dt")
 
-    axes[5].plot(
+    axes[7].plot(
         metrics[:, IDX_TIME],
         metrics[:, IDX_MEAN_DPDX],
         color="tab:brown",
         linewidth=1.4,
         label="mean dpdx",
     )
-    axes[5].plot(
+    axes[7].plot(
         metrics[:, IDX_TIME],
         metrics[:, IDX_PRESSURE_DROP],
         color="tab:cyan",
         linewidth=1.4,
         label="pressure drop",
     )
-    axes[5].set_xlabel("Time")
-    axes[5].set_ylabel("Pressure metrics")
-    axes[5].legend()
+    axes[7].set_xlabel("Time")
+    axes[7].set_ylabel("Pressure metrics")
+    axes[7].legend()
 
     for ax in axes:
         ax.grid(True, color="0.85", linewidth=0.8)
@@ -288,7 +316,7 @@ def main() -> None:
     metrics_data = read_monitor_file(args.metrics_file, MIN_METRICS_COLUMNS)
     change_data = read_monitor_file(args.change_file, MIN_CHANGE_COLUMNS)
     output_path = plot_monitor_history(
-        metrics_data, change_data, args.stride, args.output
+        metrics_data, change_data, args.stride, args.output, args.x_min
     )
 
     print(f"Saved plot to {output_path}")
