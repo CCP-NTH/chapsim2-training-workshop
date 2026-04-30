@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid Name="flow_xi368" GridType="Uniform">
+      <Topology TopologyType="3DRectMesh" Dimensions="321 385 2"/>
+      <Geometry GeometryType="VXVYVZ">
+        <DataItem ItemType="Uniform"
+                  Dimensions="2"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Seek="4">
+          ../1_data/domain1_grid_xi368.bin
+        </DataItem>
+        <DataItem ItemType="Uniform"
+                  Dimensions="385"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Seek="4">
+          ../1_data/domain1_grid_y.bin
+        </DataItem>
+        <DataItem ItemType="Uniform"
+                  Dimensions="321"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Seek="4">
+          ../1_data/domain1_grid_z.bin
+        </DataItem>
+      </Geometry>
+      <Attribute Name="pr" AttributeType="Scalar" Center="Cell">
+        <DataItem ItemType="Uniform"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Dimensions="320 384 1">
+          ../1_data/domain1_pr_xi368_190000.bin
+        </DataItem>
+      </Attribute>
+      <Attribute Name="phi" AttributeType="Scalar" Center="Cell">
+        <DataItem ItemType="Uniform"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Dimensions="320 384 1">
+          ../1_data/domain1_phi_xi368_190000.bin
+        </DataItem>
+      </Attribute>
+      <Attribute Name="qx_ccc" AttributeType="Scalar" Center="Cell">
+        <DataItem ItemType="Uniform"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Dimensions="320 384 1">
+          ../1_data/domain1_qx_ccc_xi368_190000.bin
+        </DataItem>
+      </Attribute>
+      <Attribute Name="qy_ccc" AttributeType="Scalar" Center="Cell">
+        <DataItem ItemType="Uniform"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Dimensions="320 384 1">
+          ../1_data/domain1_qy_ccc_xi368_190000.bin
+        </DataItem>
+      </Attribute>
+      <Attribute Name="qz_ccc" AttributeType="Scalar" Center="Cell">
+        <DataItem ItemType="Uniform"
+                  NumberType="Float"
+                  Precision="8"
+                  Format="Binary"
+                  Dimensions="320 384 1">
+          ../1_data/domain1_qz_ccc_xi368_190000.bin
+        </DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>
