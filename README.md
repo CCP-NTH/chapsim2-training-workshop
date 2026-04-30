@@ -1,4 +1,4 @@
-![CCP-NTH Logo](ccp-nth-logo-new-long.png)
+![CCP-NTH Logo](images/ccp-nth-logo-new-long.png)
 
 # CHAPSim2 Training Workshop
 
